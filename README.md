@@ -1,11 +1,9 @@
 ## Valparaiso repository for plotting scripts online.
 The code is written by many but has been organised into a repo.
+The folder `original_scripts` comprise Bergeron cronjobs compiled herein.
 
 John Lawson, March 2022
 
-Cron jobs found in:
-* wxweb
-* kgoebber
 
 #### TO DO
 * Standardise data loading with classes and xarray
