@@ -11,3 +11,4 @@ class ColorTables:
 
     self.cmap1 = 0
     self.cmap2 = 0
+

@@ -92,9 +92,13 @@ class GEFS:
                 for coo in self.xrobj.get(vrbl).coords:
                     if coo not in ("lat","lon","reftime","time","ens"):
                         vertical_coord.append(coo)
-                assert len(vertical_coord) == 1
-                lv_str = vertical_coord[0]
-            z_coords = self.xrobj.get(vrbl).coords.get(lv_str).data
+
+                if len(vertical_coord) != 1:
+                    print("Only one vertical level.")
+                    z_coords = None
+                else:
+                    lv_str = vertical_coord[0]
+                    z_coords = self.xrobj.get(vrbl).coords.get(lv_str).data
             
         rets = [data,]
         if return_units:
