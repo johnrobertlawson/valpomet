@@ -34,6 +34,10 @@ class BirdsEye:
                         mask_out_land=False,mask_out_sea=False,
                         figsize=(9,7),dpi=300,do_US_counties=True,
                         ocean_color="black",
+                        country_border_color="darkgray",
+                        coast_color="black",plot_coastline=True,
+                        mask_out_land=False,mask_out_sea=False,
+                        figsize=(9,7),dpi=300,
                     ):
 
 
@@ -98,6 +102,7 @@ class BirdsEye:
                         {'lat_start':23,'lat_end':57,'lon_start':-135,'lon_end':-55},
                     "Indiana":
                         {'lat_start':39,'lat_end':44,'lon_start':-90,'lon_end':-84},
+                        # {'lat_start':20,'lat_end':60,'lon_start':-140,'lon_end':-50},
                     # "Global":
                         # {'lat_start':-90,'lat_end':90,'lon_start':-180,'lon_end':180},
                     }
@@ -139,6 +144,7 @@ class BirdsEye:
                         edgecolor=self.country_border_color,linewidth=0.4,
                         zorder=6)
         gl = self.ax.gridlines(draw_labels=True,linewidth=0.3,
+        # gl = self.ax.gridlines(draw_labels=True,
                 color='gray', alpha=0.5, linestyle='--',
                 zorder=10)
 
