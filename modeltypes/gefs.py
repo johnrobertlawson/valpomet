@@ -17,6 +17,8 @@ class GEFS:
         self.fpath = fpath
         self.lazy_load = True
         self.xrobj, self.metadata = self.get_data_metadata()
+        self.parsed_ds = self.xrobj.metpy.parse_cf()
+
 
         #### KEY METADATA
         # self.utc = self.xrobj.time.dt
@@ -55,7 +57,7 @@ class GEFS:
         for x in self.inventory:
             print(x)
         if write_to_file:
-            fpath = f"GEFS_{self.gefs_type}_inventory.txt"
+            fpath = f"../docs/GEFS_{self.gefs_type}_inventory.txt"
             with open(fpath,"w") as f:
                 for x in self.inventory:
                     f.write(f"{x}\n")
@@ -92,9 +94,13 @@ class GEFS:
                 for coo in self.xrobj.get(vrbl).coords:
                     if coo not in ("lat","lon","reftime","time","ens"):
                         vertical_coord.append(coo)
-                assert len(vertical_coord) == 1
-                lv_str = vertical_coord[0]
-            z_coords = self.xrobj.get(vrbl).coords.get(lv_str).data
+
+                if len(vertical_coord) != 1:
+                    print("Only one vertical level.")
+                    z_coords = None
+                else:
+                    lv_str = vertical_coord[0]
+                    z_coords = self.xrobj.get(vrbl).coords.get(lv_str).data
             
         rets = [data,]
         if return_units:

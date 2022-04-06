@@ -45,10 +45,12 @@ https://www.meted.ucar.edu/labs/synoptic/isentropic_analysis/print.php
 import os
 import pdb
 
+import numpy as np
 import metpy
+from metpy.plots import add_timestamp
 
-from valpomet.plotting.xsection import XSection
-from valpomet.plotting.birdseye import Birdseye
+# from valpomet.plotting.xsection import XSection
+from valpomet.plotting.birdseye import BirdsEye
 
 
 def plot_isentropic_xsection(pot_temp,pressure_lvs,sfc_pressure,latA,
