@@ -33,6 +33,7 @@ class NAM:
 
         #### KEY METADATA
         self.valid_times = self.xrobj.coords["time"].data
+        self.valid_times_dt = self.return_datetimes(self.valid_times)
         self.init_time = self.xrobj.coords["reftime"].data
         # There is no time zero (analysis) 
         self.forecast_times = self.valid_times - self.init_time
@@ -45,6 +46,16 @@ class NAM:
         self.lats, self.lons = self.get_latlons()
         if print_inventory:
             self.print_inventory(write_to_file=True)
+
+    @staticmethod
+    def return_datetimes(numpy_times):
+        # return [t.astype(np.datetime64).astype("O") for 
+                        # t in numpy_times]
+        return [datetime.datetime.utcfromtimestamp(x.tolist()/
+                1e9) for x in numpy_times]
+
+    def get_datetime_from_idx(self,idx):
+        return self.valid_times_dt[idx]
 
     def get_latlons(self):
         lats, lons = (self.ds.coords["latitude"].data, 

@@ -3,8 +3,12 @@
 import os
 import pdb
 import itertools
+import datetime
 
 import numpy as np
+import metpy
+from metpy.units import units as mpunits
+# from metpy.calc import 
 import matplotlib as mpl
 mpl.use("agg")
 
@@ -12,6 +16,7 @@ from valpomet.modeltypes.nam import NAM
 from valpomet.modeltypes.ensemble import Ensemble
 from valpomet.plotting.birdseye import BirdsEye
 from valpomet.plotting.isentropic import plot_isentropic_birdseye
+import valpomet.utils.utils as utils
 
 # GEFS.download_data()
 data_root = '/data/ldmdata/model/nam'
@@ -21,7 +26,7 @@ if True:
     # 1 - BASIC
     do_test_1 = False
     # 2 - Pressure change
-    do_test_2 = True
+    do_test_2 = False
     # 3 - Comapring products' MSLP change
     # do_test_3 = True
     # 4 - 
@@ -102,7 +107,88 @@ if True:
 
 
     if do_test_5:
-        pass
+        isen_lvs = [280,285,290,293,296,300,305,310] * mpunits.kelvin
+        # nam_data = nam.ds.set_coords(["longitude","latitude"])
+        # nam_data = nam.ds.set_coords(["longitude","latitude","isobaric","isobaric2"])
+        nam_data = nam.ds.set_coords(["longitude","latitude","isobaric2"])
+        # P_lvs = nam_data["isobaric2"]
+        P_lvs = nam_data["Relative_humidity_isobaric"
+                    ].metpy.vertical.values*mpunits.Pa
+        # nam_data = nam.xrobj.squeeze().set_coords(["longitude","latitude"])
+        _temp = "Temperature_isobaric"
+        _u = "u-component_of_wind_isobaric"
+        _v = "v-component_of_wind_isobaric"
+        # .METPY.sel(vertical=[50000,"Pa"]
+        # .sel() can do timestamps in the pandas format or datetime object ("O")
+        _z = "Geopotential_height_isobaric"
+        _RH = "Relative_humidity_isobaric"
+        timesel = nam.get_datetime_from_idx(1)
+        P_array = np.zeros([len(P_lvs),428,614])
+        for x,y in itertools.product(np.arange(428),np.arange(614)):
+        # for x,y in itertools.product([np.arange(428),np.arange(614)]):
+            P_array[:,int(x),int(y)] = P_lvs
+        
+        # pdb.set_trace()
+        gkg = mpunits.gram / mpunits.kilogram
+        spechum = metpy.calc.specific_humidity_from_mixing_ratio(
+                    metpy.calc.mixing_ratio_from_relative_humidity(
+                    # nam_data["isobaric2"],#.isel(time=0),
+                    # nam_data["Temperature_isobaric"].metpy.vertical,
+                    # nam_data["Relative_humidity_isobaric"].metpy.vertical,
+                    # P_lvs*mpunits.Pa,
+                    P_array*mpunits.Pa,
+                    nam_data["Temperature_isobaric"].metpy.sel(
+                        vertical=P_lvs,time=timesel).values*mpunits.K,
+                    nam_data["Relative_humidity_isobaric"].metpy.sel(
+                        # vertical=P_lvs,time=timesel).values*mpunits.percent,
+                        vertical=P_lvs,time=timesel).values*mpunits.percent,
+                        )
+                    )*gkg
+
+        temp = nam_data[_temp].metpy.sel(vertical=P_lvs,time=timesel)
+        # temp = nam_data[_temp].isel(time=0).metpy.sel(vertical=P_lvs)
+        uu = nam_data[_u].metpy.sel(vertical=P_lvs,time=timesel)
+        vv = nam_data[_v].metpy.sel(vertical=P_lvs,time=timesel)
+        Z = nam_data[_z].metpy.sel(vertical=P_lvs,time=timesel)
+        RH = nam_data[_RH].metpy.sel(vertical=P_lvs,time=timesel)
+        # pdb.set_trace()
+        print("Interpolating to (K): ",isen_lvs)
+        # pdb.set_trace()
+        # isen_data = metpy.calc.isentropic_interpolation_as_dataset(
+        isen_data = metpy.calc.isentropic_interpolation(
+                        # isen_lvs,temp,uu,vv,spechum,Z)
+                        isen_lvs,P_lvs,temp,uu,vv,spechum,Z,RH,
+                        bottom_up_search=False)
+        # pdb.set_trace()
+        P_isen, u_isen, v_isen, sphum_isen, Z_isen, RH_isen = isen_data
+
+        kw = dict()
+        kw["map_area"] = "US"
+        kw["do_US_counties"] = False
+        # kw["map_area"] = "Indiana"
+        # kw["do_US_counties"] = True1
+        kw["land_color"] = "white"
+
+        # Smoothing needed?
+        for n,islv in enumerate(isen_lvs):
+            FIG = BirdsEye(nam.lats,nam.lons,do_faster_contourf=False,
+                                ocean_color="lightblue",figsize=(10,7),alpha=0.5,
+                                # do_colorbar=True,
+                                **kw)
+            FIG.contour(P_isen[n,:,:],levels=np.arange(100,1101,25))
+            # FIG.contour(sphum_isen[n,:,:],colors="darkgreen",lw=0.25)
+            # FIG.contourf(sphum_isen[n,:,:],cmap=mpl.cm.Greens)
+            FIG.contour(RH_isen[n,:,:],colors="darkgreen",lw=0.25,
+                            levels=np.arange(60,101,10))
+            FIG.contourf(RH_isen[n,:,:],cmap=mpl.cm.Greens,
+                            levels=np.arange(60,101,10))
+            FIG.barbs(u_isen[n,:,:],v_isen[n,:,:],thinning=10,color="black",
+                                        lw=1,)
+            FIG.save(f"./test/nam_april2022_test3_{islv.magnitude:03d}K.png")
+        pdb.set_trace()
+
+
+
     # TEST 3 - ISENTROPIC BIRDSEYE
 
 

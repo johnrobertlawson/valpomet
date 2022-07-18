@@ -1,4 +1,6 @@
 import pdb
+# import dill
+import pickle
 import time
 import datetime
 import functools
@@ -20,3 +22,19 @@ def time_this(f):
         print(f"Function {f.__name__} took {t_min:02d} min, {t_sec:02d} sec.")
         return result
     return wrap
+
+def save_pickle(obj,fpath,use_dill=False):
+    """Dill not installed by default.
+    """
+    func = dill if use_dill is True else pickle
+    with open(fpath,"wb") as f:
+        func.dump(obj,f)
+    return
+
+def load_pickle(fpath,use_dill=False):
+    """Dill not installed by default.
+    """
+    func = dill if use_dill is True else pickle
+    with open(fpath,"rb") as f:
+        x = func.load(f)
+    return x

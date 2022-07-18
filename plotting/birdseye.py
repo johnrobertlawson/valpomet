@@ -28,23 +28,19 @@ class BirdsEye:
     def __init__(self,lats,lons,map_area="Indiana",do_maplines=True,
                         do_faster_contourf=True,alpha=0.65,
                         draw_res="50m",print_done=False,
-                        # country_border_color="darkgray",
                         country_border_color="black",
                         coast_color="black",plot_coastline=True,
                         mask_out_land=False,mask_out_sea=False,
                         figsize=(9,7),dpi=300,do_US_counties=True,
-                        ocean_color="black",
-                        country_border_color="darkgray",
-                        coast_color="black",plot_coastline=True,
-                        mask_out_land=False,mask_out_sea=False,
-                        figsize=(9,7),dpi=300,
-                    ):
+                        ocean_color="black",land_color="darkgreen",
+                        ):
 
 
         ## Assign to attributes
         self.lats = lats
         self.lons = lons
-        self.map_area = self.check_map_area(map_area)
+        # self.map_area = self.check_map_area(map_area)
+        self.map_area = map_area
         self.do_faster_contourf = do_faster_contourf
         self.alpha = alpha
         self.draw_res = draw_res
@@ -58,6 +54,7 @@ class BirdsEye:
         self.dpi = dpi
         self.do_US_counties = do_US_counties
         self.ocean_color = ocean_color
+        self.land_color = land_color
 
         self.proj = self.get_proj()
         extents = self.get_extents()
@@ -90,6 +87,7 @@ class BirdsEye:
         projs = {
                 "NAmerica":ccrs.PlateCarree(),
                 "CONUS":ccrs.PlateCarree(),
+                "US":ccrs.PlateCarree(),
                 "GreatLakes":ccrs.PlateCarree(),
                 "Indiana":ccrs.PlateCarree(),
                 }
@@ -98,6 +96,8 @@ class BirdsEye:
     def get_extents(self,):
         MAP_EXTENTS = {
                     # "NAmerica":
+                    "US":
+                        {'lat_start':24,'lat_end':52,'lon_start':-127,'lon_end':-65},
                     "CONUS":
                         {'lat_start':23,'lat_end':57,'lon_start':-135,'lon_end':-55},
                     "Indiana":
@@ -116,11 +116,11 @@ class BirdsEye:
             gl.ylocator = mpl.ticker.FixedLocator(lat_line_locs)
         return gl
 
-    @staticmethod
-    def check_map_area(map_area):
-        assert map_area in {"NAmerica","CONUS","GreatLakes","Indiana",
-                            }
-        return map_area
+    # @staticmethod
+    # def check_map_area(map_area):
+        # assert map_area in {"NAmerica","CONUS","GreatLakes","Indiana",
+                            # }
+        # return map_area
 
     def do_map_stuff(self,):
         """.
@@ -162,7 +162,7 @@ class BirdsEye:
         land_zorder = 5 if self.mask_out_land else 1.5
         self.ax.add_feature(cfeature.NaturalEarthFeature('physical',
                     'land', self.draw_res,zorder=land_zorder,
-                    edgecolor='face', facecolor='darkgreen',),
+                    edgecolor='face', facecolor=self.land_color,),
                     )
         sea_zorder = 5 if self.mask_out_sea else 1
         # sea_zorder = 5 if self.mask_out_sea else 1.5
@@ -244,8 +244,9 @@ class BirdsEye:
             if False:
                 cbar_ax = self.fig.add_axes([0.125, 0.05, 0.775, 0.03])
                 self.fig.colorbar(cf1,cax=cbar_ax,orientation="horizontal")
-            if False:
-                self.fig.colorbar(cf1,orientation="vertical")
+            if True:
+                self.fig.colorbar(cf1,orientation="horizontal")
+                # self.fig.colorbar(cf1,orientation="vertical")
             # more_down = True if (self.map_area in ("NH","SH")) else False
             # label_str = 0
             # ticks = self.get_ticks(vrbl,lv)
@@ -257,8 +258,18 @@ class BirdsEye:
             pass
         return
 
-    def barb(self,thinning=1):
-        # self.ax
+    def barbs(self,u_data,v_data,thinning=1,color="white",lw=0.5):
+        th = thinning
+        if self.lats.ndim == 2:
+            lats = self.lats[::th,::th]
+            lons = self.lons[::th,::th]
+        else:
+            lats = self.lats[::th]
+            lons = self.lons[::th]
+        self.ax.barbs(lons, lats, u_data[::th,::th],
+                v_data[::th,::th], sizes=dict(emptybarb=0),flagcolor='white',
+                barbcolor=color, alpha=self.alpha, length=4, linewidth=lw,
+                zorder=100)
         return
 
     def save(self,fpath):
