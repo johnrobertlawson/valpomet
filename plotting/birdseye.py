@@ -13,7 +13,7 @@ M.use("agg")
 import matplotlib.pyplot as plt
 import metpy
 
-import valpomet.utils.utils as utils
+# import valpomet.utils.utils as utils
 
 class BirdsEye:
     def __init__(self,*args,**kwargs):
