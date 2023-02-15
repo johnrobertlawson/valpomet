@@ -38,3 +38,11 @@ def load_pickle(fpath,use_dill=False):
     with open(fpath,"rb") as f:
         x = func.load(f)
     return x
+
+def find_time_var(var, time_basename='time'):
+    # Helper function for finding time variable from
+    # https://unidata.github.io/python-training/gallery/gfs_widget/
+    for coord_name in var.coordinates.split():
+        if coord_name.startswith(time_basename):
+            return coord_name
+    raise ValueError('No time variable found for ' + var.name)
